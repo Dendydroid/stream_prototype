@@ -1,5 +1,22 @@
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
+const WebSocketServer = require('ws').Server;
+const https = require('https');
+const express = require('express');
+const fs = require('fs');
+
+// process.env.JWT_PRIVATE_KEY.replace(/\\n/gm, '\n')
+
+var privateKey = fs.readFileSync('secure/key.pem', 'utf8');
+var certificate = fs.readFileSync('secure/server.crt', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
+
+const httpsServer = https.createServer(credentials);
+httpsServer.listen(8443);
+
+const wss = new WebSocketServer({
+    server: httpsServer,
+});
+
 wss.on('connection', ws => {
     ws.on('message', message => {
         message = JSON.parse(message);
@@ -16,3 +33,7 @@ wss.on('connection', ws => {
         }
     });
 });
+
+wss.on("error", err => {
+    console.log(err)
+})
