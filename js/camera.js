@@ -11,23 +11,26 @@ let camera = {
 let canvas = document.getElementById('stream_canvas');
 let context = canvas.getContext('2d');
 
-const user_id = 1;
-
 let lastFrame = "";
 
 let err = false;
-let partner_video = document.querySelector("#partner_video");
 
 connection.onerror = error => {
     err = true;
     console.log(`WebSocket error: ${error}`)
 };
 
+let partner_canvas = document.getElementById("partner_canvas");
+let partner_context = partner_canvas.getContext("2d");
+
+let frame = new Image();
+
 connection.onmessage = e => {
-    e.data = JSON.parse(e.data);
-    if(e.data.user === user_id)
+    let data = JSON.parse(e.data);
+    if(data.user === user_id)
     {
-        partner_video.src = e.data.frame;
+        frame.src = data.frame;
+        partner_context.drawImage(frame, 0, 0);
     }
 };
 
@@ -44,7 +47,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             let $this = this;
             (function loop() {
                 if (!$this.paused && !$this.ended) {
-
+                    context.drawImage($this, 0, 0); // drawing our camera
                     if(!err)
                     {
                         lastFrame = JSON.stringify(
